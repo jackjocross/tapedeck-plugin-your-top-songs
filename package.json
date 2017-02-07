@@ -1,0 +1,34 @@
+{
+  "name": "tapedeck-plugin-your-top-songs",
+  "version": "1.0.0",
+  "description": "Your top 50 songs of the last 4 weeks.",
+  "main": "lib/index.js",
+  "scripts": {
+    "clean": "rimraf build",
+    "test": "jest --coverage",
+    "lint": "eslint --ignore-path .eslintignore --ext .js ./",
+    "prebuild": "npm run clean && npm run lint",
+    "build": "babel src -d lib --copy-files",
+    "posttest": "npm run lint",
+    "prepublish": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jayjaycross/tapedeck-plugin-your-top-songs.git"
+  },
+  "author": "Jack Cross <jackjocross@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-cli": "^6.6.5",
+    "babel-core": "^6.5.2",
+    "babel-eslint": "^6.0.0",
+    "babel-preset-es2015": "^6.5.0",
+    "babel-preset-stage-0": "^6.5.0",
+    "eslint": "^3.13.1",
+    "eslint-plugin-import": "^2.2.0",
+    "rimraf": "^2.5.2"
+  },
+  "dependencies": {
+    "isomorphic-fetch": "^2.2.1"
+  }
+}
