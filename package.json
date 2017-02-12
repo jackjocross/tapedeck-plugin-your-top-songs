@@ -1,6 +1,6 @@
 {
   "name": "tapedeck-plugin-your-top-songs",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Your top 50 songs of the last 4 weeks.",
   "main": "lib/index.js",
   "scripts": {
