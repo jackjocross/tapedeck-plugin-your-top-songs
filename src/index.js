@@ -1,8 +1,8 @@
 import fetch from 'isomorphic-fetch';
 
-export default function (access_token) {
-  const populate = (playlist, profile, options) => {
-    fetch('https://api.spotify.com/v1/me/top/tracks?limit=50&time_range=short_term', options)
+export default function (access_token, store) {
+  const populate = (playlistId, profileId, options) => {
+    return fetch('https://api.spotify.com/v1/me/top/tracks?limit=50&time_range=short_term', options)
       .then(res => res.json())
       .then((trackList) => {
         const uris = trackList.items.map(track => track.uri);
@@ -14,7 +14,10 @@ export default function (access_token) {
           }),
         });
 
-        fetch(`https://api.spotify.com/v1/users/${profile.id}/playlists/${playlist.id}/tracks`, addOpts);
+        return fetch(
+          `https://api.spotify.com/v1/users/${profileId}/playlists/${playlistId}/tracks`,
+          addOpts
+        ).then(() => ({ playlistId }));
       });
   };
 
@@ -22,14 +25,11 @@ export default function (access_token) {
     headers: { Authorization: `Bearer ${access_token}` },
   };
 
-  const profilePending = fetch('https://api.spotify.com/v1/me', options);
-  const playlistsPending = fetch('https://api.spotify.com/v1/me/playlists', options);
-
-  Promise.all([profilePending, playlistsPending]).then(([profileReq, playlistsReq]) => {
-    Promise.all([profileReq.json(), playlistsReq.json()]).then(([profile, playlists]) => {
-      const playlist = playlists.items.filter(item => item.name === 'Your Top Songs')[0];
-      if (playlist) {
-        populate(playlist, profile, options);
+  return fetch('https://api.spotify.com/v1/me', options)
+    .then((profileReq) => profileReq.json())
+    .then((profile) => {
+      if (store && store.playlistId) {
+        return populate(store.playlistId, profile.id, options);
       } else {
         const createOpts = Object.assign({}, options, {
           method: 'POST',
@@ -37,10 +37,9 @@ export default function (access_token) {
             name: 'Your Top Songs',
           }),
         });
-        fetch(`https://api.spotify.com/v1/users/${profile.id}/playlists`, createOpts)
+        return fetch(`https://api.spotify.com/v1/users/${profile.id}/playlists`, createOpts)
           .then(response => response.json())
-          .then(newPlaylist => populate(newPlaylist, profile, options));
+          .then(playlist => populate(playlist.id, profile.id, options));
       }
     });
-  });
 }
