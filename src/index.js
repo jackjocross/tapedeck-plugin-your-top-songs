@@ -25,21 +25,26 @@ export default function (access_token, store) {
     headers: { Authorization: `Bearer ${access_token}` },
   };
 
-  return fetch('https://api.spotify.com/v1/me', options)
-    .then((profileReq) => profileReq.json())
-    .then((profile) => {
-      if (store && store.playlistId) {
+  const profilePending = fetch('https://api.spotify.com/v1/me', options);
+  const playlistsPending = fetch('https://api.spotify.com/v1/me/playlists', options);
+
+  return Promise.all([profilePending, playlistsPending]).then(([profileReq, playlistsReq]) =>
+    Promise.all([profileReq.json(), playlistsReq.json()]).then(([profile, playlists]) => {
+      const playlist = store && playlists.items.filter(item => item.id === store.playlistId)[0];
+      if (playlist) {
         return populate(store.playlistId, profile.id, options);
       } else {
         const createOpts = Object.assign({}, options, {
           method: 'POST',
           body: JSON.stringify({
-            name: 'Your Top Songs',
+            name: 'Your Top Songs (TPDK 🤖)',
           }),
         });
         return fetch(`https://api.spotify.com/v1/users/${profile.id}/playlists`, createOpts)
           .then(response => response.json())
           .then(playlist => populate(playlist.id, profile.id, options));
       }
-    });
+
+    })
+  );
 }
